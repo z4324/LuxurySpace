@@ -43,16 +43,40 @@
       </div>
     </div>
     
-    <div v-if="notiMostrada" class="notificaciones">
-      <div class="notificacion">
-        <button class="cerrar-noti" @click="descartar">×</button>
-        <strong>¡Tienes una nueva multa!</strong>
-        <div><b>Monto:</b> ${{ notiMostrada.monto }}</div>
-        <div><b>Motivo:</b> {{ notiMostrada.motivo }}</div>
-        <div><b>Estado:</b> {{ notiMostrada.estado }}</div>
-        <div><b>Fecha:</b> {{ notiMostrada.fecha_emision }}</div>
+<div v-if="notiMostrada" class="notificaciones">
+  <div class="notificacion">
+    <button class="cerrar-noti" @click="descartar">×</button>
+    <div class="noti-header">
+      <strong>¡Tienes una nueva notificacion!</strong>
+      <span class="noti-tipo">Multa</span>
+    </div>
+    <div class="noti-body">
+      <div class="noti-row">
+        <span class="noti-label"><b>Monto:</b></span>
+        <span class="noti-value">${{ notiMostrada.monto }}</span>
+      </div>
+      <div class="noti-row">
+        <span class="noti-label"><b>Motivo:</b></span>
+        <span class="noti-value">{{ notiMostrada.motivo }}</span>
+      </div>
+      <div class="noti-row">
+        <span class="noti-label"><b>Estado:</b></span>
+        <span class="noti-value">{{ notiMostrada.estado }}</span>
+      </div>
+      <div class="noti-row">
+        <span class="noti-label"><b>Fecha:</b></span>
+        <span class="noti-value">{{ notiMostrada.fecha_emision }}</span>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="navbar-noti">
+  <div class="noti-bell" @click="goToNotificaciones">
+<i class="mdi mdi-bell-outline">🔔</i>
+    <span v-if="contadorNoLeidas > 0" class="noti-count">{{ contadorNoLeidas }}</span>
+  </div>
+</div>
   </nav>
 </template>
 
@@ -61,6 +85,8 @@ import logo from '/img/logo.png';
 import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { huesped, logoutHuesped } from '@/store/session.js';
+import { useRouter } from 'vue-router';
+
 
 const showProfile = ref(false);
 const todasMultas = ref([]);
@@ -70,6 +96,29 @@ const lastNotiId = ref(localStorage.getItem('last_noti_id') || null);
 
 let autoHideTimer = null;
 let intervalId = null;
+
+
+
+const contadorNoLeidas = ref(0);
+const router = useRouter();
+
+function goToNotificaciones() {
+  router.push('/notificaciones');
+}
+
+async function actualizarContadorNoLeidas() {
+  const userId = huesped.value?.id || huesped.value?._id;
+  if (!userId) {
+    contadorNoLeidas.value = 0;
+    return;
+  }
+  try {
+    const res = await axios.get(`http://127.0.0.1:8000/api/multas/huesped/${userId}`);
+    contadorNoLeidas.value = res.data.filter(m => m.vista === false).length;
+  } catch {
+    contadorNoLeidas.value = 0;
+  }
+}
 
 async function fetchTodasMultas() {
   const userId = huesped.value?.id || huesped.value?._id;
@@ -114,6 +163,7 @@ async function fetchMultaReciente() {
     console.error('Error al obtener multa reciente:', error);
     notiMostrada.value = null;
   }
+  await actualizarContadorNoLeidas();
 }
 
 function descartar() {
@@ -146,8 +196,10 @@ function cerrarSesion() {
 
 onMounted(() => {
   fetchMultaReciente();
+  actualizarContadorNoLeidas();
   intervalId = setInterval(() => {
     fetchMultaReciente();
+    actualizarContadorNoLeidas();
     if (showProfile.value) {
       fetchTodasMultas();
     }
@@ -318,6 +370,73 @@ body {
   right: 20px;
   z-index: 9999;
   max-width: 320px;
+}
+.noti-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 4px;
+}
+.navbar-noti {
+  position: relative;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+.noti-bell {
+  color: #0957ff;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.noti-bell i {
+  font-size: 32px;
+  margin-right: 4px;
+}
+.noti-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ecc80f;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.85em;
+  padding: 2px 7px;
+  font-weight: bold;
+  min-width: 22px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.noti-tipo {
+  background: #ffe58f;
+  color: #ad6800;
+  font-size: 0.95em;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.noti-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.noti-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.noti-label {
+  min-width: 70px;
+  font-weight: 500;
+}
+.noti-value {
+  font-weight: 600;
+  color: #ad6800;
+  margin-left: 10px;
+  word-break: break-word;
 }
 .notificacion {
   background: #fffbe6;
