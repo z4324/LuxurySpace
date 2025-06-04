@@ -86,6 +86,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { huesped, logoutHuesped } from '@/store/session.js';
 import { useRouter } from 'vue-router';
+import Multas from '@/views/Multas.vue';
 
 
 const showProfile = ref(false);
@@ -96,7 +97,6 @@ const lastNotiId = ref(localStorage.getItem('last_noti_id') || null);
 
 let autoHideTimer = null;
 let intervalId = null;
-
 
 
 const contadorNoLeidas = ref(0);

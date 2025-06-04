@@ -110,11 +110,11 @@ const form = reactive({
     }
 
     .navbar-links a:hover {
-      color: #d4af37; /* Dorado suave */
+      color: #d4af37; 
     }
 
     .banner {
-      background: #111 url('../img/banner.png') no-repeat center center/cover; /* Imagen con fallback */
+      background: #111 url('../img/banner.png') no-repeat center center/cover; 
       height: 100vh;
       color: white;
       display: flex;
@@ -127,7 +127,7 @@ const form = reactive({
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.4); /* Oscurecer fondo */
+      background: rgba(0, 0, 0, 0.4);
       z-index: 1;
     }
 

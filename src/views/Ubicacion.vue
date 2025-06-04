@@ -69,11 +69,11 @@ import MenuNav from '@/components/MenuNav.vue';
     }
 
     .navbar-links a:hover {
-      color: #d4af37; /* Dorado suave */
+      color: #d4af37;
     }
 
     .banner {
-      background: #111 url('../img/banner.png') no-repeat center center/cover; /* Imagen con fallback */
+      background: #111 url('../img/banner.png') no-repeat center center/cover;
       height: 100vh;
       color: white;
       display: flex;
@@ -86,7 +86,7 @@ import MenuNav from '@/components/MenuNav.vue';
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.4); /* Oscurecer fondo */
+      background: rgba(0, 0, 0, 0.4);
       z-index: 1;
     }
 
@@ -236,7 +236,7 @@ import MenuNav from '@/components/MenuNav.vue';
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5); /* Oscurecer fondo para legibilidad */
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1;
     }
 
@@ -244,14 +244,14 @@ import MenuNav from '@/components/MenuNav.vue';
       max-width: 1200px;
       margin: 0 auto;
       position: relative;
-      z-index: 2; /* Asegurar que el contenido esté sobre el fondo oscurecido */
+      z-index: 2; 
     }
 
     .location-content h1 {
       font-size: 2.8rem;
       font-weight: 700;
       margin-bottom: 15px;
-      color: white; /* Texto blanco para contraste */
+      color: white;
     }
 
     .location-content p {
@@ -261,7 +261,7 @@ import MenuNav from '@/components/MenuNav.vue';
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
-      color: white; /* Texto blanco para contraste */
+      color: white;
     }
 
     .map-container {
@@ -284,7 +284,7 @@ import MenuNav from '@/components/MenuNav.vue';
     }
 
     .detail-card {
-      background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco semitransparente */
+      background-color: rgba(255, 255, 255, 0.9);
       padding: 20px;
       border-radius: 12px;
       max-width: 300px;
@@ -301,7 +301,7 @@ import MenuNav from '@/components/MenuNav.vue';
     .detail-card p {
       font-size: 1rem;
       line-height: 1.4;
-      color: #111; /* Texto oscuro para las tarjetas */
+      color: #111;
     }
 
     @media (max-width: 768px) {

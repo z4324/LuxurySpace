@@ -44,12 +44,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+
 import axios from 'axios';
 import MenuNav from '@/components/MenuNav.vue';
 
 const huespedes = ref([]);
-const loading = ref(false);
-const success = ref(false);
+const loading = ref(false)
 const error = ref('');
 
 const form = reactive({
@@ -78,7 +78,6 @@ async function crearMulta() {
       headers: { 'Content-Type': 'application/json' }
     });
     success.value = true;
-    // Limpia el formulario
     form.huesped_id = '';
     form.monto = '';
     form.motivo = '';
@@ -91,6 +90,8 @@ async function crearMulta() {
   }
 }
 </script>
+ 
+
 
 <style scoped>
 .multas-section {

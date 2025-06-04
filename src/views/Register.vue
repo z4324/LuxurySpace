@@ -172,12 +172,12 @@ body {
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
-  width: 100%; /* <-- Agrega esto */
-  box-sizing: border-box; /* <-- Asegura que el padding no desborde */
+  width: 100%; 
+  box-sizing: border-box;
 }
 
 .form-group {
-  width: 100%; /* <-- Agrega esto */
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
