@@ -7,11 +7,11 @@ const routes = [
     name: 'Home',
     component: Home
   },
-  /* {
+  {
     path: '/departamentos',
     name: 'Departamentos',
-    component: () => import('../views/Departamentos.vue') // Carga diferida
-  },*/
+    component: () => import('../views/Departamentos.vue') 
+  },
   {
     path: '/multas',
     name: 'Multas',
