@@ -49,6 +49,7 @@
                   <span class="info-label">Fecha de registro:</span>
                   <span class="info-value">{{ huesped.fecha_registro }}</span>
                 </div>
+                <router-link to="/editar-perfil" class="btn btn-primary">Editar perfil</router-link>
               </div>
             </div>
             <div class="col-12 col-md-6 mb-3">
@@ -96,7 +97,6 @@
                     <th>Dispositivo</th>
                     <th>IP</th>
                     <th>Fecha de inicio</th>
-                    <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,21 +108,9 @@
                     </td>
                     <td>{{ sesion.ip || 'N/A' }}</td>
                     <td>{{ sesion.fecha_inicio || sesion.created_at }}</td>
-                    <td>
-                      <button
-                        v-if="sesion.id !== sesionActualId"
-                        @click="cerrarSesionRemota(sesion.id)"
-                        class="btn btn-outline-danger btn-sm"
-                      >Cerrar</button>
-                    </td>
                   </tr>
                 </tbody>
               </table>
-              <button
-                v-if="sesiones.length > 1"
-                @click="cerrarOtrasSesiones"
-                class="btn btn-danger btn-sm mt-2"
-              >Cerrar todas las demás sesiones</button>
             </div>
           </div>
         </div>
@@ -234,8 +222,6 @@ const sesionActualId = ref(null);
 const showSesiones = ref(false);
 const modalMultas = ref(false);
 
-
-
 async function obtenerSesiones() {
   cargandoSesiones.value = true;
   errorSesiones.value = '';
@@ -254,32 +240,6 @@ async function obtenerSesiones() {
     sesiones.value = [];
   } finally {
     cargandoSesiones.value = false;
-  }
-}
-
-async function cerrarSesionRemota(id) {
-  try {
-    await axios.delete(`http://127.0.0.1:8000/api/sesiones/${id}`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('token')
-      }
-    });
-    await obtenerSesiones();
-  } catch (e) {
-    alert('Error al cerrar la sesión.');
-  }
-}
-
-async function cerrarOtrasSesiones() {
-  try {
-    await axios.delete('http://127.0.0.1:8000/api/sesiones', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('token')
-      }
-    });
-    await obtenerSesiones();
-  } catch (e) {
-    alert('Error al cerrar otras sesiones.');
   }
 }
 
@@ -355,8 +315,7 @@ async function fetchMultaReciente() {
     ) {
       notiMostrada.value = multa;
       lastNotiId.value = multa._id;
-      localStorage.setItem('last_noti_id', lastNotiId.value);
-
+      localStorage.setItem('last_noti_id', multa._id);
       if (autoHideTimer) {
         clearTimeout(autoHideTimer);
       }
@@ -407,6 +366,8 @@ async function cerrarSesion() {
   } catch (e) {
     console.error('Error al cerrar sesión:', e);
   }
+  localStorage.clear();
+  sessionStorage.clear();
   logoutHuesped();
   closeProfile();
   window.location.href = '/';

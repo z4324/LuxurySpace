@@ -4,10 +4,30 @@
     <div class="auth-container">
       <form id="login-form" class="auth-form" @submit.prevent="login">
         <h2>Iniciar Sesión</h2>
-        <input v-model="form.correo" type="email" placeholder="Correo Electrónico" required />
-        <input v-model="form.contrasena" type="password" placeholder="Contraseña" required />
-        <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
-        <div v-if="error" style="color:red;">{{ error }}</div>
+        <input 
+          v-model="form.correo" 
+          type="email" 
+          placeholder="Correo Electrónico" 
+          required 
+          :disabled="loading"
+        />
+        <div class="input-group">
+          <input
+            v-model="form.contrasena"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Contraseña"
+            required
+            :disabled="loading"
+          />
+          <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
+            {{ showPassword ? 'Ocultar' : 'Ver Contraseña' }}
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        </button>
+        <div v-if="error" class="error-message">{{ error }}</div>
+        <div v-if="success" class="success-message">{{ success }}</div>
       </form>
     </div>
   </section>
@@ -15,75 +35,58 @@
 
 <script setup>
 import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import MenuNav from '@/components/MenuNav.vue';
 import { loginHuesped } from '@/store/session.js';
 
+const router = useRouter();
 const form = reactive({
   correo: '',
   contrasena: ''
 });
 const error = ref('');
+const success = ref('');
+const loading = ref(false);
+const showPassword = ref(false);
 
 async function login() {
   error.value = '';
+  success.value = '';
+  loading.value = true;
+  
   try {
     const res = await axios.post('http://127.0.0.1:8000/api/login', form);
-    if (res.data.token) {
+    
+    if (res.data.token && res.data.huesped) {
       localStorage.setItem('token', res.data.token);
-      loginHuesped(res.data.huesped); 
-      window.location.href = '/';
+      loginHuesped(res.data.huesped);
+      
+      success.value = 'Inicio de sesión exitoso. Redirigiendo...';
+      
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
     } else {
       error.value = 'Respuesta inesperada del servidor';
     }
   } catch (e) {
-    error.value = e.response?.data?.error || 'Credenciales inválidas';
+    console.error('Error en login:', e);
+    error.value = e.response?.data?.error || 'Error al iniciar sesión. Verifica tus credenciales.';
+  } finally {
+    loading.value = false;
   }
 }
+
+
+
 </script>
 
-<style>
-    body {
+<style scoped>
+body {
   margin: 0;
   font-family: 'Montserrat', sans-serif;
   background-color: #111;
-}
-
-.navbar {
-  background-color: #111;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 30px;
-}
-
-.navbar-logo {
-  display: flex;
-  align-items: center;
-}
-
-.navbar-logo img {
-  height: 120px;
-  margin-right: 10px;
-}
-
-.navbar-logo h1 {
-  font-family: 'Great Vibes', cursive;
-  font-size: 62px;
-  margin: 0;
-  color: white;
-}
-
-.navbar-links a {
-  margin-left: 20px;
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.navbar-links a:hover {
-  color: #d4af37;
 }
 
 .auth-section {
@@ -125,16 +128,27 @@ async function login() {
   font-size: 1.8rem;
   margin-bottom: 20px;
   color: #111;
+  text-align: center;
 }
 
-.auth-form input,
-.auth-form select {
+.auth-form input {
   padding: 12px;
-  border: none;
+  border: 1px solid #ddd;
   background-color: #f1f6fb;
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #009FE3;
+}
+
+.auth-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn {
@@ -142,9 +156,9 @@ async function login() {
   font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: 20px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s;
 }
 
 .btn-primary {
@@ -152,8 +166,40 @@ async function login() {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #007cb3;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  padding: 10px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.success-message {
+  color: #155724;
+  font-size: 0.9rem;
+  padding: 10px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
 }
 
 @media (max-width: 768px) {

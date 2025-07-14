@@ -15,6 +15,12 @@ const routes = [
     component: () => import('../views/Departamentos.vue') 
   },
   {
+    path: '/editar-perfil',
+    name: 'EditarPerfil',
+    component: () => import('../views/EditarPerfil.vue'),
+    meta: { middleware: [auth] }
+  },
+  {
     path: '/multas',
     name: 'Multas',
     meta:{
@@ -45,6 +51,7 @@ const routes = [
     name: 'Galeria',
     component: () => import('../views/Galeria.vue')
   },
+  
   {
     path: '/login',
     name: 'Login',
@@ -54,13 +61,34 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: () => import('../views/Register.vue')
-  } 
+  },
+  {
+    path: '/cambiar-correo',
+    name: 'ChangeEmail',
+    component: () => import('../views/ChangeEmail.vue'),
+    meta: { middleware: [auth] }
+  },
+  {
+    path: '/cambiar-contrasena',
+    name: 'ChangePass',
+    component: () => import('../views/ChangePass.vue'),
+    meta: { middleware: [auth] }
+  },
 ];
+
+
+
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
+
+
+
+
+
 
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.meta.middleware && to.meta.middleware.some(mw => mw.name === 'auth');

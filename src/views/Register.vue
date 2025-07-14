@@ -21,7 +21,17 @@
           <span v-if="errors.correo" class="error">{{ errors.correo[0] }}</span>
         </div>
         <div class="form-group">
-          <input type="password" v-model="form.contrasena" placeholder="Contraseña" required />
+          <div class="input-group">
+            <input
+              v-model="form.contrasena"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Contraseña"
+              required
+            />
+            <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
+              {{ showPassword ? 'Ocultar' : 'Ver Contraseña' }}
+            </button>
+          </div>
           <span v-if="errors.contrasena" class="error">{{ errors.contrasena[0] }}</span>
         </div>
         <button type="submit" class="btn btn-primary" :disabled="loading">
@@ -50,6 +60,7 @@ const form = reactive({
 const errors = ref({});
 const loading = ref(false);
 const success = ref(false);
+const showPassword = ref(false);
 
 const register = async () => {
   loading.value = true;
