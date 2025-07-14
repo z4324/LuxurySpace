@@ -57,7 +57,7 @@ const register = async () => {
   success.value = false;
 
   try {
-    console.log('Enviando datos:', form); // Para depurar
+    console.log('Enviando datos:', form); 
     const response = await axios.post('http://127.0.0.1:8000/api/register', form, {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -66,7 +66,7 @@ const register = async () => {
       router.push({ name: 'Login' });
     }, 2000);
   } catch (error) {
-    console.error('Error completo:', error.response || error); // Para depurar
+    console.error('Error completo:', error.response || error); 
     if (error.response && error.response.status === 422) {
       errors.value = error.response.data.errors;
     } else {

@@ -4,7 +4,7 @@
     <div class="notificaciones-vista">
       <h2>Notificaciones nuevas</h2>
       <ul v-if="notiNoLeidas.length">
-        <li v-for="noti in notiNoLeidas" :key="noti._id" class="noti-list-item">
+        <li v-for="noti in notiNoLeidas" :key="noti.id" class="noti-list-item">
           <div>
             <b>Monto:</b> ${{ noti.monto }}<br>
             <b>Motivo:</b> {{ noti.motivo }}<br>
@@ -36,7 +36,14 @@ async function cargarNoLeidas() {
     notiNoLeidas.value = [];
     return;
   }
-  const res = await axios.get(`http://127.0.0.1:8000/api/multas/huesped/${userId}`);
+  const res = await axios.get(
+    `http://127.0.0.1:8000/api/multas/huesped/${userId}`,
+    {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    }
+  );
   notiNoLeidas.value = res.data
     .filter(m => m.vista === false)
     .sort((a, b) => new Date(b.fecha_notificacion) - new Date(a.fecha_notificacion));
@@ -45,19 +52,24 @@ async function cargarNoLeidas() {
 async function marcarTodasComoLeidas() {
   try {
     const promises = notiNoLeidas.value.map(async (noti) => {
-      if (!noti._id) {
+      if (!noti.id) {
         console.error('ID de notificación no definido:', noti);
         return;
       }
       try {
-        const res = await axios.put(
-          `http://127.0.0.1:8000/api/multas/${noti._id}/vista`,
-          {}
+        const res = await axios.post(
+          `http://127.0.0.1:8000/api/multas/${noti.id}/vista`,
+          {},
+          {
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('token')
+            }
+          }
         );
-        console.log(`Notificación ${noti._id} marcada como leída`, res.data);
+        console.log(`Notificación ${noti.id} marcada como leída`, res.data);
       } catch (error) {
-        alert(`Error marcando notificación ${noti._id}: ${error.response?.data?.error || error.message}`);
-        console.error(`Error marcando notificación ${noti._id} como leída:`, error.response?.data || error.message);
+        alert(`Error marcando notificación ${noti.id}: ${error.response?.data?.error || error.message}`);
+        console.error(`Error marcando notificación ${noti.id} como leída:`, error.response?.data || error.message);
       }
     });
     await Promise.all(promises);

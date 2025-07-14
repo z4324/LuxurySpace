@@ -29,9 +29,12 @@ async function login() {
   error.value = '';
   try {
     const res = await axios.post('http://127.0.0.1:8000/api/login', form);
-    if (res.data.ok) {
-      loginHuesped(res.data.user); // Guarda todo el usuario
+    if (res.data.token) {
+      localStorage.setItem('token', res.data.token);
+      loginHuesped(res.data.huesped); 
       window.location.href = '/';
+    } else {
+      error.value = 'Respuesta inesperada del servidor';
     }
   } catch (e) {
     error.value = e.response?.data?.error || 'Credenciales inválidas';

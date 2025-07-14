@@ -1,5 +1,7 @@
+import { auth } from '../middleware'; 
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
+import axios from 'axios';
 
 const routes = [
   {
@@ -15,12 +17,18 @@ const routes = [
   {
     path: '/multas',
     name: 'Multas',
+    meta:{
+      middleware:[auth]
+    },
     component: () => import('../views/Multas.vue')
   }, 
   {
-  path: '/notificaciones',
-  name: 'Notificaciones',
-  component: () => import('@/views/Notificaciones.vue')
+    path: '/notificaciones',
+    name: 'Notificaciones',
+    meta:{
+      middleware:[auth]
+    },
+    component: () => import('@/views/Notificaciones.vue')
   },
   {
     path: '/amenidades',
@@ -37,7 +45,6 @@ const routes = [
     name: 'Galeria',
     component: () => import('../views/Galeria.vue')
   },
- 
   {
     path: '/login',
     name: 'Login',
@@ -51,8 +58,30 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
+});
+
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.meta.middleware && to.meta.middleware.some(mw => mw.name === 'auth');
+  if (requiresAuth) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      next('/login');
+      return;
+    }
+    try {
+      await axios.get('http://127.0.0.1:8000/api/sesion', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      next();
+    } catch (e) {
+      localStorage.removeItem('token');
+      next('/login');
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

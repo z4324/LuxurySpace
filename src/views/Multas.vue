@@ -35,23 +35,43 @@
         <button class="btn btn-primary" type="submit" :disabled="loading">
           {{ loading ? 'Enviando...' : 'Crear Multa' }}
         </button>
-        <p v-if="success" class="success">¡Multa creada correctamente!</p>
         <p v-if="error" class="error">{{ error }}</p>
       </form>
     </div>
   </section>
+
+
+
+
+  <transition name="slide-fade">
+
+    <div v-if="success" class="modal-overlay">
+
+      <div class="modal-content">
+        <h3>¡Éxito!</h3>
+        <p>Multa creada correctamente</p>
+        <button class="btn btn-close" @click="success = false"></button>
+      </div>
+
+      
+    </div>
+  </transition>
+
+
+
+
+
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-
 import axios from 'axios';
 import MenuNav from '@/components/MenuNav.vue';
 
 const huespedes = ref([]);
-const loading = ref(false)
+const loading = ref(false);
 const error = ref('');
-
+const success = ref(false);
 const form = reactive({
   huesped_id: '',
   monto: '',
@@ -62,7 +82,11 @@ const form = reactive({
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/huespedes');
+    const res = await axios.get('http://127.0.0.1:8000/api/huespedes', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    });
     huespedes.value = res.data;
   } catch (e) {
     error.value = 'No se pudieron cargar los huéspedes';
@@ -75,7 +99,10 @@ async function crearMulta() {
   error.value = '';
   try {
     await axios.post('http://127.0.0.1:8000/api/multas', { ...form }, {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
     });
     success.value = true;
     form.huesped_id = '';
@@ -90,8 +117,6 @@ async function crearMulta() {
   }
 }
 </script>
- 
-
 
 <style scoped>
 .multas-section {
@@ -139,12 +164,47 @@ input, select {
 .btn:disabled {
   background: #aaa;
 }
-.success {
-  color: green;
-  margin-top: 10px;
-}
 .error {
   color: red;
   margin-top: 10px;
+}
+
+
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.btn-close {
+  background-color: #ff4d4f;
+  margin-top: 15px;
+}
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-leave-active {
+  transition: all 0.8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to {
+  transform: translateX(10px);
+  opacity: 0;
 }
 </style>
