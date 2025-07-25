@@ -11,7 +11,6 @@
       <router-link to="/departamentos">Departamentos</router-link>
       <router-link to="/amenidades">Amenidades</router-link>
       <router-link to="/ubicacion">Ubicación</router-link>
-      <router-link to="/multas">Multas</router-link>
       <router-link to="/galeria">Galería</router-link>
       <template v-if="!huesped || !huesped.id">
         <router-link to="/login">Iniciar sesión</router-link>
@@ -191,6 +190,10 @@
       </div>
     </div>
   </nav>
+  <div v-if="conexionPerdida" class="alert alert-warning text-center">
+  No se pudo conectar con el servidor. Verifica tu conexión.
+</div>
+
 </template>
 
 <script setup>
@@ -199,7 +202,6 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { huesped, logoutHuesped } from '@/store/session.js';
 import { useRouter } from 'vue-router';
-import Multas from '@/views/Multas.vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
@@ -211,7 +213,7 @@ const lastNotiId = ref(localStorage.getItem('last_noti_id') || null);
 
 let autoHideTimer = null;
 let intervalId = null;
-
+let sesionIntervalId = null;
 const contadorNoLeidas = ref(0);
 const router = useRouter();
 
@@ -328,6 +330,40 @@ async function fetchMultaReciente() {
   await actualizarContadorNoLeidas();
 }
 
+const conexionPerdida = ref(false);
+
+async function verificarSesionPeriodicamente() {
+  sesionIntervalId = setInterval(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await axios.get('http://127.0.0.1:8000/api/sesion', {
+        headers: { Authorization: 'Bearer ' + token },
+        timeout: 9000 
+      });
+
+      if (conexionPerdida.value) {
+        conexionPerdida.value = false;
+      }
+
+    } catch (e) {
+      if (e.response && e.response.status === 401) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+        window.location.replace('/login');
+      } else {
+        conexionPerdida.value = false;
+        await new Promise(res => setTimeout(res, 10));
+        conexionPerdida.value = true;
+
+        console.warn('Error de conexión detectado.');
+      }
+    }
+  }, 8000);
+}
+
 function descartar() {
   if (notiMostrada.value) {
     descartadas.value.push(notiMostrada.value._id);
@@ -373,39 +409,6 @@ async function cerrarSesion() {
   window.location.href = '/';
 }
 
-function getDeviceIcon(userAgent) {
-  if (!userAgent) return '<i class="bi bi-question-circle"></i>';
-  const ua = userAgent.toLowerCase();
-  if (ua.includes('android')) return '<i class="bi bi-phone"></i>';
-  if (ua.includes('iphone') || ua.includes('ipad')) return '<i class="bi bi-phone"></i>';
-  if (ua.includes('windows')) return '<i class="bi bi-laptop"></i>';
-  if (ua.includes('cros')) return '<i class="bi bi-pc-display"></i>';
-  if (ua.includes('linux')) return '<i class="bi bi-pc-display-horizontal"></i>';
-  if (ua.includes('mac')) return '<i class="bi bi-apple"></i>';
-  if (ua.includes('firefox')) return '<i class="bi bi-fire"></i>';
-  if (ua.includes('chrome')) return '<i class="bi bi-google"></i>';
-  if (ua.includes('brave')) return '<i class="bi bi-shield-lock"></i>';
-  if (ua.includes('safari')) return '<i class="bi bi-compass"></i>';
-  return '<i class="bi bi-question-circle"></i>';
-}
-
-function getDeviceName(userAgent) {
-  if (!userAgent) return 'Desconocido';
-  const ua = userAgent.toLowerCase();
-  if (ua.includes('android')) return 'Android';
-  if (ua.includes('iphone')) return 'iPhone';
-  if (ua.includes('ipad')) return 'iPad';
-  if (ua.includes('windows')) return 'Windows';
-  if (ua.includes('cros')) return 'Chromebook';
-  if (ua.includes('linux')) return 'Linux';
-  if (ua.includes('mac')) return 'Mac';
-  if (ua.includes('firefox')) return 'Firefox';
-  if (ua.includes('chrome')) return 'Chrome';
-  if (ua.includes('brave')) return 'Brave';
-  if (ua.includes('safari')) return 'Safari';
-  return 'Desconocido';
-}
-
 onMounted(() => {
   fetchMultaReciente();
   actualizarContadorNoLeidas();
@@ -416,16 +419,41 @@ onMounted(() => {
       fetchTodasMultas();
     }
   }, 8000);
+  verificarSesionPeriodicamente();
 });
 
 onUnmounted(() => {
   if (intervalId) {
     clearInterval(intervalId);
   }
+  if (sesionIntervalId) {
+    clearInterval(sesionIntervalId);
+  }
   if (autoHideTimer) {
     clearTimeout(autoHideTimer);
   }
 });
+
+
+function getDeviceName(userAgent) {
+  if (!userAgent) return 'Desconocido';
+  if (/mobile/i.test(userAgent)) return 'Móvil';
+  if (/tablet/i.test(userAgent)) return 'Tablet';
+  if (/windows|macintosh|linux/i.test(userAgent)) return 'PC';
+  if (/android/i.test(userAgent)) return 'Android';
+  if (/iphone|ipad/i.test(userAgent)) return 'iOS';
+  return 'Otro';
+}
+
+function getDeviceIcon(userAgent) {
+  if (!userAgent) return '<i class="bi bi-question-circle"></i>';
+  if (/mobile/i.test(userAgent)) return '<i class="bi bi-phone"></i>';
+  if (/tablet/i.test(userAgent)) return '<i class="bi bi-tablet"></i>';
+  if (/windows|macintosh|linux/i.test(userAgent)) return '<i class="bi bi-laptop"></i>';
+  if (/android/i.test(userAgent)) return '<i class="bi bi-android"></i>';
+  if (/iphone|ipad/i.test(userAgent)) return '<i class="bi bi-apple"></i>';
+  return '<i class="bi bi-question-circle"></i>';
+}
 </script>
 
 <style scoped>

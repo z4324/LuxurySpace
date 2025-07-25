@@ -1,11 +1,10 @@
 <template>
-  <MenuNav />
   <section class="auth-section">
     <div class="auth-container">
-      <form id="login-form" class="auth-form" @submit.prevent="login">
-        <h2>Iniciar Sesión</h2>
+      <form id="admin-login-form" class="auth-form" @submit.prevent="login">
+        <h2>Iniciar Sesión - Administrador</h2>
         <input 
-          v-model="form.correo" 
+          v-model="form.email" 
           type="email" 
           placeholder="Correo Electrónico" 
           required 
@@ -13,22 +12,19 @@
         />
         <div class="input-group">
           <input
-            v-model="form.contrasena"
+            v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Contraseña"
             required
             :disabled="loading"
           />
-            <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
-              <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-            </button>
+          <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
         </div>
         <button type="submit" class="btn btn-primary" :disabled="loading">
           {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
         </button>
-        <p class="mt-2">
-  <router-link to="/recuperar-password">¿Olvidaste tu contraseña?</router-link>
-</p>
 
         <div v-if="error" class="error-message">{{ error }}</div>
         <div v-if="success" class="success-message">{{ success }}</div>
@@ -42,12 +38,11 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import MenuNav from '@/components/MenuNav.vue';
-import { loginHuesped } from '@/store/session.js';
 
 const router = useRouter();
 const form = reactive({
-  correo: '',
-  contrasena: ''
+  email: '',
+  password: ''
 });
 const error = ref('');
 const success = ref('');
@@ -60,30 +55,28 @@ async function login() {
   loading.value = true;
   
   try {
-    const res = await axios.post('http://127.0.0.1:8000/api/login', form);
+    const res = await axios.post('http://127.0.0.1:8000/api/admin/login', form);
     
-    if (res.data.token && res.data.huesped) {
-      localStorage.setItem('token', res.data.token);
-      loginHuesped(res.data.huesped);
+    if (res.data.token && res.data.admin) {
+      localStorage.setItem('admin_token', res.data.token);
+      localStorage.setItem('user_type', 'admin');
+      localStorage.setItem('admin_data', JSON.stringify(res.data.admin));
       
       success.value = 'Inicio de sesión exitoso. Redirigiendo...';
       
       setTimeout(() => {
-        router.push('/');
+        router.push('/admin/dashboard');
       }, 1000);
     } else {
       error.value = 'Respuesta inesperada del servidor';
     }
   } catch (e) {
-    console.error('Error en login:', e);
+    console.error('Error en login admin:', e);
     error.value = e.response?.data?.error || 'Error al iniciar sesión. Verifica tus credenciales.';
   } finally {
     loading.value = false;
   }
 }
-
-
-
 </script>
 
 <style scoped>
@@ -147,7 +140,7 @@ body {
 
 .auth-form input:focus {
   outline: none;
-  border-color: #009FE3;
+  border-color: #dc3545;
 }
 
 .auth-form input:disabled {
@@ -166,12 +159,12 @@ body {
 }
 
 .btn-primary {
-  background-color: #009FE3;
+  background-color: #dc3545;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #007cb3;
+  background-color: #c82333;
   transform: translateY(-1px);
 }
 

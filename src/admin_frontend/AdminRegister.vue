@@ -1,11 +1,24 @@
 <template>
-  <MenuNav />
   <section class="auth-section">
     <div class="auth-container">
-      <form id="login-form" class="auth-form" @submit.prevent="login">
-        <h2>Iniciar Sesión</h2>
+      <form id="admin-register-form" class="auth-form" @submit.prevent="register">
+        <h2>Registro - Administrador</h2>
         <input 
-          v-model="form.correo" 
+          v-model="form.nombre" 
+          type="text" 
+          placeholder="Nombre" 
+          required 
+          :disabled="loading"
+        />
+        <input 
+          v-model="form.apellidos" 
+          type="text" 
+          placeholder="Apellidos" 
+          required 
+          :disabled="loading"
+        />
+        <input 
+          v-model="form.email" 
           type="email" 
           placeholder="Correo Electrónico" 
           required 
@@ -13,22 +26,36 @@
         />
         <div class="input-group">
           <input
-            v-model="form.contrasena"
+            v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Contraseña"
             required
             :disabled="loading"
+            minlength="6"
           />
-            <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
-              <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-            </button>
+          <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+        <div class="input-group">
+          <input
+            v-model="form.password_confirmation"
+            :type="showPasswordConfirm ? 'text' : 'password'"
+            placeholder="Confirmar Contraseña"
+            required
+            :disabled="loading"
+            minlength="6"
+          />
+          <button type="button" class="btn btn-outline-secondary" @click="showPasswordConfirm = !showPasswordConfirm">
+            <i :class="showPasswordConfirm ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
         </div>
         <button type="submit" class="btn btn-primary" :disabled="loading">
-          {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+          {{ loading ? 'Registrando...' : 'Registrar' }}
         </button>
         <p class="mt-2">
-  <router-link to="/recuperar-password">¿Olvidaste tu contraseña?</router-link>
-</p>
+          <router-link to="/admin/login">¿Ya tienes cuenta? Inicia sesión</router-link>
+        </p>
 
         <div v-if="error" class="error-message">{{ error }}</div>
         <div v-if="success" class="success-message">{{ success }}</div>
@@ -42,48 +69,57 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import MenuNav from '@/components/MenuNav.vue';
-import { loginHuesped } from '@/store/session.js';
 
 const router = useRouter();
 const form = reactive({
-  correo: '',
-  contrasena: ''
+  nombre: '',
+  apellidos: '',
+  email: '',
+  password: '',
+  password_confirmation: ''
 });
 const error = ref('');
 const success = ref('');
 const loading = ref(false);
 const showPassword = ref(false);
+const showPasswordConfirm = ref(false);
 
-async function login() {
+async function register() {
   error.value = '';
   success.value = '';
+  
+  if (form.password !== form.password_confirmation) {
+    error.value = 'Las contraseñas no coinciden';
+    return;
+  }
+  
   loading.value = true;
   
   try {
-    const res = await axios.post('http://127.0.0.1:8000/api/login', form);
+    const res = await axios.post('http://127.0.0.1:8000/api/admin/register', {
+      nombre: form.nombre,
+      apellidos: form.apellidos,
+      email: form.email,
+      password: form.password
+    });
     
-    if (res.data.token && res.data.huesped) {
-      localStorage.setItem('token', res.data.token);
-      loginHuesped(res.data.huesped);
-      
-      success.value = 'Inicio de sesión exitoso. Redirigiendo...';
-      
-      setTimeout(() => {
-        router.push('/');
-      }, 1000);
-    } else {
-      error.value = 'Respuesta inesperada del servidor';
-    }
+    success.value = 'Registro exitoso. Redirigiendo al login...';
+    
+    setTimeout(() => {
+      router.push('/admin/login');
+    }, 2000);
+    
   } catch (e) {
-    console.error('Error en login:', e);
-    error.value = e.response?.data?.error || 'Error al iniciar sesión. Verifica tus credenciales.';
+    console.error('Error en registro admin:', e);
+    if (e.response?.data?.email) {
+      error.value = 'El correo electrónico ya está registrado';
+    } else {
+      error.value = e.response?.data?.message || 'Error al registrar. Intenta nuevamente.';
+    }
   } finally {
     loading.value = false;
   }
 }
-
-
-
 </script>
 
 <style scoped>
@@ -147,7 +183,7 @@ body {
 
 .auth-form input:focus {
   outline: none;
-  border-color: #009FE3;
+  border-color: #dc3545;
 }
 
 .auth-form input:disabled {
@@ -166,12 +202,12 @@ body {
 }
 
 .btn-primary {
-  background-color: #009FE3;
+  background-color: #dc3545;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #007cb3;
+  background-color: #c82333;
   transform: translateY(-1px);
 }
 

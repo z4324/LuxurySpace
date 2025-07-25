@@ -1,4 +1,5 @@
 <template>
+<div class="editar-perfil-bg">
   <div class="editar-perfil-container">
     <h2>Editar perfil</h2>
     <form @submit.prevent="editarPerfil">
@@ -31,6 +32,7 @@
       </button>
     </form>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -88,7 +90,7 @@ async function editarPerfil() {
 
 <style scoped>
 .editar-perfil-container {
-  max-width: 400px;
+  width: 500px;
   margin: 40px auto;
   background: #fff;
   padding: 32px;
@@ -101,4 +103,11 @@ async function editarPerfil() {
 .btn {
   width: 100%;
 }
+.editar-perfil-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #d9e2ec, #1a45a2);
+  justify-content: center;
+  align-items: center;
+}
+
 </style>

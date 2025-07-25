@@ -29,7 +29,7 @@
               required
             />
             <button type="button" class="btn btn-outline-secondary" @click="showPassword = !showPassword">
-              {{ showPassword ? 'Ocultar' : 'Ver Contraseña' }}
+              <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
             </button>
           </div>
           <span v-if="errors.contrasena" class="error">{{ errors.contrasena[0] }}</span>

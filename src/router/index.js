@@ -1,4 +1,4 @@
-import { auth } from '../middleware'; 
+import { auth, adminAuth } from '../middleware'; 
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import axios from 'axios';
@@ -10,6 +10,11 @@ const routes = [
     component: Home
   },
   {
+    path: '/home',
+    name: 'Inicio',
+    component: Home
+  },
+  {
     path: '/departamentos',
     name: 'Departamentos',
     component: () => import('../views/Departamentos.vue') 
@@ -18,23 +23,27 @@ const routes = [
     path: '/editar-perfil',
     name: 'EditarPerfil',
     component: () => import('../views/EditarPerfil.vue'),
-    meta: { middleware: [auth] }
   },
-  {
-    path: '/multas',
-    name: 'Multas',
-    meta:{
-      middleware:[auth]
-    },
-    component: () => import('../views/Multas.vue')
-  }, 
+
   {
     path: '/notificaciones',
     name: 'Notificaciones',
     meta:{
-      middleware:[auth]
+      middleware: [auth]
     },
     component: () => import('@/views/Notificaciones.vue')
+  },
+  {
+    path: '/cambiar-correo',
+    name: 'ChangeEmail',
+    component: () => import('../views/ChangeEmail.vue'),
+    meta: { middleware: [auth] }
+  },
+  {
+    path: '/cambiar-contrasena',
+    name: 'ChangePass',
+    component: () => import('../views/ChangePass.vue'),
+    meta: { middleware: [auth] }
   },
   {
     path: '/amenidades',
@@ -51,7 +60,6 @@ const routes = [
     name: 'Galeria',
     component: () => import('../views/Galeria.vue')
   },
-  
   {
     path: '/login',
     name: 'Login',
@@ -63,53 +71,68 @@ const routes = [
     component: () => import('../views/Register.vue')
   },
   {
-    path: '/cambiar-correo',
-    name: 'ChangeEmail',
-    component: () => import('../views/ChangeEmail.vue'),
-    meta: { middleware: [auth] }
+    path: '/recuperar-password',
+    name: 'RecuperarPassword',
+    component: () => import('../components/RecuperarPassword.vue')
+  },
+  
+  // Rutas de Administrador
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('../admin_frontend/AdminLogin.vue')
   },
   {
-    path: '/cambiar-contrasena',
-    name: 'ChangePass',
-    component: () => import('../views/ChangePass.vue'),
-    meta: { middleware: [auth] }
+    path: '/admin/register',
+    name: 'AdminRegister',
+    component: () => import('../admin_frontend/AdminRegister.vue')
   },
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: () => import('../admin_frontend/AdminDashboard.vue'),
+    meta: { middleware: [adminAuth] }
+  },
+  {
+    path: '/admin/perfil',
+    name: 'AdminPerfil',
+    component: () => import('../admin_frontend/AdminPerfil.vue'),
+    meta: { middleware: [adminAuth] }
+  },
+  {
+    path: '/admin/multas/crear',
+    name: 'AdminCrearMulta',
+    component: () => import('../admin_frontend/AdminCrearMulta.vue'),
+    meta: { middleware: [adminAuth] }
+  }
 ];
-
-
-
-
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
 
-
-
-
-
-
 router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.meta.middleware && to.meta.middleware.some(mw => mw.name === 'auth');
-  if (requiresAuth) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      next('/login');
-      return;
-    }
-    try {
-      await axios.get('http://127.0.0.1:8000/api/sesion', {
-        headers: { Authorization: 'Bearer ' + token }
+  if (to.meta.middleware) {
+    const middlewares = to.meta.middleware;
+    
+    for (let i = 0; i < middlewares.length; i++) {
+      const middleware = middlewares[i];
+      
+      const result = await new Promise((resolve) => {
+        middleware(to, from, (path) => {
+          resolve(path);
+        });
       });
-      next();
-    } catch (e) {
-      localStorage.removeItem('token');
-      next('/login');
+      
+      if (result && result !== true) {
+        next(result);
+        return;
+      }
     }
-  } else {
-    next();
   }
+  
+  next();
 });
 
 export default router;
